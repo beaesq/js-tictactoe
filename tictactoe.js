@@ -13,12 +13,23 @@ const Player = (username, mark) => {
 
 // game control
 const game = (() => {
+  
+  
 
 })();
 
+// interfacing
 const displayController = (() => {
+  let divContainer = document.querySelector('#board-container');
+  divContainer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('board-square')) {
+      const row = e.target.getAttribute("row");
+      const column = e.target.getAttribute("column");
+      console.log(row, column);
+    }
+  })
+
   const displayBoard = () => {
-    let divContainer = document.querySelector('#board-container');
     divContainer.innerHTML = '';
 
     let board = gameBoard.board.flat();
