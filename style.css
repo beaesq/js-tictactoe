@@ -4,5 +4,13 @@
   grid-template-columns: 1fr 1fr 1fr;
 
   width: fit-content;
+  height: fit-content;
+  background-color: gray;
   gap: 3px;
+}
+
+.board-square {
+  width: 30px;
+  height: 30px;
+  background-color: antiquewhite;
 }
