@@ -1,6 +1,5 @@
 // board contents
 const gameBoard = (() => {
-  // let board = [['X', 'O', 'X'], ['X', 'O', 'O'], ['O', 'X', 'X']];
   let board = [['', '', ''], ['', '', ''], ['', '', '']];
 
   const add = (column, row, mark) => {
@@ -29,7 +28,6 @@ const displayController = (() => {
   });
 
   const displayBoard = () => {
-    // let divContainer = document.querySelector('#board-container');
     divContainer.innerHTML = '';
 
     let board = gameBoard.board.flat();
@@ -87,7 +85,6 @@ const game = (() => {
     
     for (let num = 0; num <= 1; num++) {
       newPlayer.push(Player(displayController.getUsernameMock(num), getMark(num)));
-      // console.log(`${num} ${newPlayer[num].username}`);
     }
     
     return newPlayer;
@@ -112,15 +109,6 @@ const game = (() => {
       default:
         return '?';
         break;
-    }
-  };
-
-  let count = 0;
-  const isGameWonMock = () => {
-    if (count == 3) {
-      return true;
-    } else {
-      return false;
     }
   };
 
@@ -187,7 +175,6 @@ const game = (() => {
   const newMark = (column, row) => {
     console.log(currentPlayer.username, column, row);
     if (!isGameOver() && isSquareEmpty(column, row)) {
-      count++; // DELETE = for isGameWonMock
       gameBoard.add(column, row, currentPlayer.mark);
       displayController.displayBoard();
       if (isGameOver()) {
@@ -205,19 +192,7 @@ const game = (() => {
     currentPlayer = players[0];
     displayController.displayBoard();
     displayController.displayCurrentPlayer(currentPlayer.username);
-    // loop();
   };
-  
-  // const loop = () => {
-  //   while (!isGameWonMock()) {
-  //     // switchCurrentPlayer();
-  //     console.log(`current player: ${currentPlayer.username}`);
-  //     displayController.displayBoard();
-  //     // getNewMark();
-  //   }
-  //   console.log(`exit loop player: ${currentPlayer.username}`);
-  //   displayController.displayWinnerMock(currentPlayer.username);
-  // };
 
   return { start, players, currentPlayer, newMark }
 })();
@@ -226,4 +201,3 @@ const game = (() => {
 
 
 game.start();
-// console.log('end');
