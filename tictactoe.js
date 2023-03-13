@@ -1,12 +1,20 @@
 // board contents
 const gameBoard = (() => {
-  let board = [['', '', ''], ['', '', ''], ['', '', '']];
+  let boardArray = [['', '', ''], ['', '', ''], ['', '', '']];
 
   const add = (column, row, mark) => {
-    board[row][column] = mark;
+    boardArray[row][column] = mark;
   };
 
-  return { board, add };
+  const reset = () => {
+    boardArray = [['', '', ''], ['', '', ''], ['', '', '']];
+  };
+
+  const board = () => {
+    return boardArray;
+  }
+
+  return { board, add, reset };
 })();
 
 // players
@@ -20,18 +28,42 @@ const displayController = (() => {
 
   let divContainer = document.querySelector('#board-container');
   divContainer.addEventListener('click', (e) => {
-    if (e.target.classList.contains('board-square')) {
+    if (e.target.classList.contains('board-square') && game.getPlayers().length != 0) {
       const row = e.target.getAttribute("row") - 1;
       const column = e.target.getAttribute("column") - 1;
       game.newMark(column, row);
     }
   });
 
+  const modal = document.getElementById('new-modal');
+  const modalBtn = document.getElementById('btn-restart');
+  const modalClose = document.getElementById('btn-close');
+  modalBtn.onclick = function() {
+    modal.style.display = "block";
+  }
+
+  modalClose.onclick = function() {
+    modal.style.display = 'none';
+  }
+  
+  window.onclick = function(event) {
+    if (event.target == modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  const form = document.querySelector('#form-new-game');
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    game.createPlayers([form.elements['player-one'].value, form.elements['player-two'].value]);
+    gameBoard.reset();
+    modal.style.display = 'none';
+  });
+
   const displayBoard = () => {
     divContainer.innerHTML = '';
-
-    let board = gameBoard.board.flat();
-    for (const [index, square] of board.entries()) {
+    let board = gameBoard.board();
+    for (const [index, square] of board.flat().entries()) {
       const divSquare = document.createElement('div');
       divSquare.classList.add('board-square');
       divSquare.setAttribute('column', indexToColumn(index));
@@ -49,45 +81,50 @@ const displayController = (() => {
     return Math.ceil((index + 1) / 3);
   };
 
-  const getUsernameMock = (num) => {
-    let username = '';
-    switch (num) {
-      case 0:
-        username = 'Yves';
-        break;
+  const displayGameStart = () => {
+    const divPlayer = document.querySelector('#current-player');
+    divPlayer.textContent = 'Welcome! Click the button below to start!';
+  };
+
+  const displayWinner = (opt, winnerName) => {
+    const divPlayer = document.querySelector('#current-player');
+    switch (opt) {
       case 1:
-        username = 'Chuu';
+        divPlayer.textContent = `${winnerName} won!`;
         break;
       default:
-        username = 'Cocomong';
-        break
+        divPlayer.textContent = `It's a draw :/`;
+        break;
     }
-    return username;
   };
 
-  const displayWinnerMock = (winnerName) => {
-    console.log(`${winnerName} won!`);
+  const displayCurrentPlayer = (username, mark) => {
+    const divPlayer = document.querySelector('#current-player');
+    divPlayer.textContent = `${username}'s turn! Mark: ${mark}`;
   };
 
-  const displayCurrentPlayer = (currentPlayer) => {
-    console.log(`current player: ${currentPlayer}`);
-  };
-
-  return { displayBoard, getUsernameMock, displayWinnerMock, displayCurrentPlayer };
+  return { displayBoard, displayGameStart, displayWinner, displayCurrentPlayer };
 })();
 
 // game control
 const game = (() => {
   let currentPlayer;
+  let players = [];
 
-  const createPlayers = () => {
+  const getPlayers = () => players;
+
+  const createPlayers = (playerNames) => {
     let newPlayer = [];
     
     for (let num = 0; num <= 1; num++) {
-      newPlayer.push(Player(displayController.getUsernameMock(num), getMark(num)));
+      newPlayer.push(Player(playerNames[num], getMark(num)));
     }
-    
-    return newPlayer;
+    players = newPlayer;
+    currentPlayer = players[0];
+    //start game
+    gameBoard.reset();
+    displayController.displayCurrentPlayer(currentPlayer.username, currentPlayer.mark);
+    displayController.displayBoard();
   };
 
   const switchCurrentPlayer = () => {
@@ -104,7 +141,7 @@ const game = (() => {
         return '✕';
         break;
       case 1:
-        return '◯';
+        return '⭘';
         break;
       default:
         return '?';
@@ -114,10 +151,10 @@ const game = (() => {
 
   const isGameOver = () => {
     if (isHorizontalWin() || isVerticalWin() || isDiagonalWin()) {
-      displayController.displayWinnerMock(currentPlayer.username);
+      displayController.displayWinner(1, currentPlayer.username);
       return true;
     } else if (isBoardFull()) {
-      displayController.displayWinnerMock('draw');
+      displayController.displayWinner(2, 'draw');
       return true;
     } else {
       return false;
@@ -129,7 +166,8 @@ const game = (() => {
   };
 
   const isHorizontalWin = () => {
-    if (gameBoard.board.map(arr => isAllEqual(arr)).includes(true)) {
+    let board = gameBoard.board();
+    if (board.map(arr => isAllEqual(arr)).includes(true)) {
       return true;
     } else {
       return false;
@@ -138,8 +176,9 @@ const game = (() => {
 
   const isVerticalWin = () => {
     let columns = [];
+    let board = gameBoard.board();
     for (let i = 0; i < 3; i++) {
-      columns.push([gameBoard.board[0][i], gameBoard.board[1][i], gameBoard.board[2][i]]);
+      columns.push([board[0][i], board[1][i], board[2][i]]);
     }
     if (columns.map(arr => isAllEqual(arr)).includes(true)) {
       return true;
@@ -150,8 +189,9 @@ const game = (() => {
 
   const isDiagonalWin = () => {
     let diagonals = [];
-    diagonals.push([gameBoard.board[0][0], gameBoard.board[1][1], gameBoard.board[2][2]]);
-    diagonals.push([gameBoard.board[0][2], gameBoard.board[1][1], gameBoard.board[2][0]]);
+    let board = gameBoard.board();
+    diagonals.push([board[0][0], board[1][1], board[2][2]]);
+    diagonals.push([board[0][2], board[1][1], board[2][0]]);
     if (diagonals.map(arr => isAllEqual(arr)).includes(true)) {
       return true;
     } else {
@@ -160,8 +200,8 @@ const game = (() => {
   };
 
   const isBoardFull = () => {
-    const board = gameBoard.board.flat();
-    return board.every(isNotEmpty);
+    let board = gameBoard.board();
+    return board.flat().every(isNotEmpty);
   };
 
   const isNotEmpty = (square) => {
@@ -169,35 +209,30 @@ const game = (() => {
   };
 
   const isSquareEmpty = (column, row) => {
-    return gameBoard.board[row][column] == '';
+    let board = gameBoard.board();
+    return board[row][column] == '';
   };
 
   const newMark = (column, row) => {
-    console.log(currentPlayer.username, column, row);
     if (!isGameOver() && isSquareEmpty(column, row)) {
       gameBoard.add(column, row, currentPlayer.mark);
       displayController.displayBoard();
       if (isGameOver()) {
-        displayController.displayWinnerMock(currentPlayer.username);
+        // idk
       } else {
         switchCurrentPlayer();
-        displayController.displayCurrentPlayer(currentPlayer.username);
+        displayController.displayCurrentPlayer(currentPlayer.username, currentPlayer.mark);
       }
     }
   };
   
   // game start
-  let players = createPlayers();
   const start = () => {
-    currentPlayer = players[0];
     displayController.displayBoard();
-    displayController.displayCurrentPlayer(currentPlayer.username);
+    displayController.displayGameStart();
   };
 
-  return { start, players, currentPlayer, newMark }
+  return { start, getPlayers, currentPlayer, newMark, createPlayers }
 })();
-
-
-
 
 game.start();

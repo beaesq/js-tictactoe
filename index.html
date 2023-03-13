@@ -9,6 +9,26 @@
   <script src="./tictactoe.js" defer></script>
 </head>
 <body>
-  <div id="board-container"></div>
+  <div id="content">
+    <div id="current-player"></div>
+    <div id="board-container"></div>
+    <div id="button-container">
+      <button id="btn-restart">Start Game</button>
+    </div>
+  </div>
+  <div class="modal" id="new-modal">
+    <div class="modal-content">
+      <div class="modal-header">Enter player names</div>
+      <span id="btn-close">&times</span>
+      <form action="index.html" method="post" id="form-new-game">
+        <label for="player-one">Player 1:</label>
+        <input type="text" name="player-one" id="player-one" required>
+        <label for="player-two">Player 2:</label>
+        <input type="text" name="player-two" id="player-two" required>
+        
+        <button type="submit" id="btn-new">Start New Game</button>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
